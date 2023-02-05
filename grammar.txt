@@ -1,0 +1,58 @@
+statements      : NEWLINE* statement (NEWLINE+ statement)* NEWLINE*
+
+statement       : KEYWORD:return expr?
+                : KEYWORD:continue
+                : KEYWORD:break
+                : KEYWORD:pass
+                : expr
+
+expr            : KEYWORD:let IDENTIFIER (DOT IDENTIFIER)? EQ expr
+                : comp-expr ((AND|OR) comp-expr)*
+
+comp-expr       : NOT comp-expr
+                : arith-expr ((EE|NE|LT|GT|LTE,GTE) arith-expr)*
+        
+arith-expr      : term ((PLUS|MINUS) term)*
+
+term            : factor ((MUL|DIV) factor)*
+
+factor          : (PLUS|MINUS) factor
+                : power
+        
+power           : call (POW factor)*
+
+call            : atom (DOT IDENTIFIER)|(LPAREN (expr (COMMA expr)*)? RPAREN)?
+
+atom            : INT|FLOAT|STRING|IDENTIFIER
+                : LPAREN expr RPAREN
+                : list-expr
+                : obj-expr
+                : if-expr
+                : for-expr
+                : while-expr
+                : func-def
+
+list-expr       : LSQUARE (expr (COMMA expr)*)? RSQUARE
+
+obj-expr        : LBRACE (IDENTIFIER EQ expr (NEWLINE IDENTIFIER EQ expr)*)? RBRACE
+
+if-expr         : KEYWORD:if expr
+                    (ARROW statement if-expr-b|if-expr-c?)
+                |   (LBRACE statements RBRACE|if-expr-b|if-expr-c)
+
+if-expr-b       : KEYWORD:elif expr
+                    (ARROW statement if-expr-b|if-expr-c?)
+                |   (LBRACE statements RBRACE|if-expr-b|if-expr-c)
+
+if-expr-c      : KEYWORD:else
+                    (ARROW statement)
+                |   (LBRACE statements RBRACE)
+
+for-expr        : KEYWORD:for IDENTIFIER EQ expr KEYWORD:TO expr
+                        (KEYWORD:STEP expr)? (ARROW statement) | (LBRACE statements RBRACE)
+
+while-expr      : KEYWORD:while expr (ARROW expr)|(LBRACE statements RBRACE)
+
+func-def        : KEYWORD:fun IDENTIFIER?
+                        LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+                        (ARROW statement) | (LBRACE statements RBRACE)
